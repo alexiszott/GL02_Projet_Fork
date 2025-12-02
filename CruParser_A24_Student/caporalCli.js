@@ -1,6 +1,7 @@
 const fs = require('fs');
 const colors = require('colors');
 const CruParser = require('./CruParser.js');
+const cours = require('./cours.js');
 const cli = require("@caporal/core").default;
 
 cli
@@ -63,34 +64,53 @@ cli
                 console.log("Searching for needle: "+searchNeedle);
                 var needle = searchNeedle.toLowerCase();
                 var matches = parsed.filter(function(c){
-                    var searcBy = (c.raw || '') + ' ' + (c.section || '') + ' ' + (c.index||'') + ' ' + (c.type||'') + ' ' + (c.capacite||'') + ' ' + (c.horaire||'') + ' ' + (c.jour||'') + ' ' + (c.semaine||'') + ' ' + (c.salle||'');
-                    return searcBy.toLowerCase().includes(needle);
+                    var searchBy = (c.cours || '') + ' ' + (c.raw || '') + ' ' + (c.section || '') + ' ' + (c.index||'') + ' ' + (c.type||'') + ' ' + (c.capacite||'') + ' ' + (c.horaire||'') + ' ' + (c.jour||'') + ' ' + (c.semaine||'') + ' ' + (c.salle||'');
+                    return searchBy.toLowerCase().includes(needle);
                 });
                 if(matches.length === 0){
                     logger.info('No matches found for needle: ' + searchNeedle);
                 }else{
                     logger.info('Found ' + matches.length + ' matching lines:');
-                    var lines = matches.map(function(m){ return m.raw; });
+                    var lines = matches.map(function(x){ return {
+                        cours: x.cours,
+                        index: x.index, 
+                        type: x.type, 
+                        capacite: x.capacite,
+                        horaire: x.horaire,
+                        jour: x.jour,
+                        semaine: x.semaine,
+                        salle: x.salle
+                    } });
                     logger.info('%s', JSON.stringify(lines, null, 2));
                 }
             } else if(searchDay && searchDay != null){
                 console.log("Filtering by day: "+searchDay);
                     var dayNeedle = searchDay.toLowerCase();
                     var matches = parsed.filter(function(c){
-                        var searcBy = (c.jour || '');
-                        return searcBy.toLowerCase().includes(dayNeedle);
+                        var searchBy = (c.jour || '');
+                        return searchBy.toLowerCase().includes(dayNeedle);
                     });
                 if(matches.length === 0){
                     logger.info('No matches found for day: ' + searchDay);
                 }else{
                     logger.info('Found ' + matches.length + ' matching lines for day ' + searchDay + ':');
-                    var lines = matches.map(function(m){ return m.raw; });
+                    var lines = matches.map(function(x){ return {
+                        cours: x.cours, 
+                        index: x.index, 
+                        type: x.type, 
+                        capacite: x.capacite, 
+                        horaire: x.horaire, 
+                        jour: x.jour, 
+                        semaine: x.semaine, 
+                        salle: x.salle
+                    } });
                     logger.info('%s', JSON.stringify(lines, null, 2));
                 }
             } else {
                 console.log("No needle provided, showing preview of parsed entries");
                 var preview = parsed.slice(0, N).map(function(x){
                     return {
+                        cours: x.cours,
                         index: x.index,
                         type: x.type,
                         capacite: x.capacite,
