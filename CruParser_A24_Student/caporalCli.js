@@ -71,7 +71,16 @@ cli
                     logger.info('No matches found for needle: ' + searchNeedle);
                 }else{
                     logger.info('Found ' + matches.length + ' matching lines:');
-                    var lines = matches.map(function(m){ return (m.cours || '') + ', ' + m.raw; });
+                    var lines = matches.map(function(x){ return {
+                        cours: x.cours,
+                        index: x.index, 
+                        type: x.type, 
+                        capacite: x.capacite,
+                        horaire: x.horaire,
+                        jour: x.jour,
+                        semaine: x.semaine,
+                        salle: x.salle
+                    } });
                     logger.info('%s', JSON.stringify(lines, null, 2));
                 }
             } else if(searchDay && searchDay != null){
@@ -85,7 +94,16 @@ cli
                     logger.info('No matches found for day: ' + searchDay);
                 }else{
                     logger.info('Found ' + matches.length + ' matching lines for day ' + searchDay + ':');
-                    var lines = matches.map(function(m){ return (m.cours || '') + ', ' + m.raw; });
+                    var lines = matches.map(function(x){ return {
+                        cours: x.cours, 
+                        index: x.index, 
+                        type: x.type, 
+                        capacite: x.capacite, 
+                        horaire: x.horaire, 
+                        jour: x.jour, 
+                        semaine: x.semaine, 
+                        salle: x.salle
+                    } });
                     logger.info('%s', JSON.stringify(lines, null, 2));
                 }
             } else {
