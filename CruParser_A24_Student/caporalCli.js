@@ -3,7 +3,7 @@ const colors = require('colors');
 const CruParser = require('./CruParser.js');
 const cours = require('./cours.js');
 const cli = require("@caporal/core").default;
-const path = require('path');      
+const path = require('path');
 
 const path = require('path');
 
@@ -206,127 +206,278 @@ cli
         }
 
     })
-  .command('maxcap', 'Check the maximum capacity of a room')
-  .argument('<room>', 'Room identifier')
-  .action(({ args, logger }) => {
-    const roomId = args.room;
+    .command('maxcap', 'Check the maximum capacity of a room')
+    .argument('<room>', 'Room identifier')
+    .action(({ args, logger }) => {
+        const roomId = args.room;
 
-    // Check if identifier is empty
-    if (!roomId || roomId.trim() === '') {
-      return logger.error("The room identifier cannot be empty.");
-    }
-
-    const rootFolder = 'SujetA_data';
-    let allCourses = [];
-
-    // Read all subfolders
-    fs.readdir(rootFolder, { withFileTypes: true }, (err, files) => {
-      if (err) return logger.error(err);
-
-      files.forEach(dirent => {
-        if (dirent.isDirectory()) {
-          const filePath = path.join(rootFolder, dirent.name, 'edt.cru');
-
-          if (fs.existsSync(filePath)) {
-            const data = fs.readFileSync(filePath, 'utf8');
-            const parser = new CruParser();
-            parser.parse(data);
-
-            allCourses = allCourses.concat(parser.parsedCru);
-          }
+        // Check if identifier is empty
+        if (!roomId || roomId.trim() === '') {
+            return logger.error("The room identifier cannot be empty.");
         }
-      });
 
-      // Filter the courses of the requested room
-      const roomCourses = allCourses.filter(c => c.salle === roomId);
-
-      if (roomCourses.length === 0) {
-        return logger.error("This room does not exist.");
-      }
-
-      // Get the maximum capacity
-      const maxCap = Math.max(...roomCourses.map(c => parseInt(c.capacite, 10)));
-      logger.info(`Maximum capacity of room ${roomId}: ${maxCap}`);
-    });
-  })
-
-  .command('freeroom', 'Check available time slots for a room')
-  .argument('<room>', 'Room identifier')
-  .action(({ args, logger }) => {
-    const roomId = args.room;
-
-    // Check if identifier is empty
-    if (!roomId || roomId.trim() === '') {
-        return logger.error("The room identifier cannot be empty.");
-    }
-
-    const fs = require('fs');
-    const path = require('path');
-    const CruParser = require('./CruParser.js');
-
-    const rootFolder = path.join(__dirname, "SujetA_data");
-
-    fs.readdir(rootFolder, { withFileTypes: true }, (err, entries) => {
-        if (err) return logger.error("Cannot read SujetA_data: " + err);
-
-        const allCourses = [];
-        let filesToRead = 0;
+        const rootFolder = 'SujetA_data';
+        let allCourses = [];
 
         // Read all subfolders
-        entries.forEach(dirent => {
-            if (dirent.isDirectory()) {
-                const filePath = path.join(rootFolder, dirent.name, "edt.cru");
-                filesToRead++;
+        fs.readdir(rootFolder, { withFileTypes: true }, (err, files) => {
+            if (err) return logger.error(err);
 
-                fs.readFile(filePath, 'utf8', (err, data) => {
-                    filesToRead--;
+            files.forEach(dirent => {
+                if (dirent.isDirectory()) {
+                    const filePath = path.join(rootFolder, dirent.name, 'edt.cru');
 
-                    if (!err) {
+                    if (fs.existsSync(filePath)) {
+                        const data = fs.readFileSync(filePath, 'utf8');
                         const parser = new CruParser();
                         parser.parse(data);
-                        allCourses.push(...(parser.parsedCru || []));
+
+                        allCourses = allCourses.concat(parser.parsedCru);
                     }
+                }
+            });
 
-                    // When all files are processed
-                    if (filesToRead === 0) {
+            // Filter the courses of the requested room
+            const roomCourses = allCourses.filter(c => c.salle === roomId);
 
-                        // Filter courses for the requested room
-                        const roomCourses = allCourses.filter(c => c.salle === roomId);
+            if (roomCourses.length === 0) {
+                return logger.error("This room does not exist.");
+            }
 
-                        if (roomCourses.length === 0) {
-                            return logger.error("This room does not exist.");
+            // Get the maximum capacity
+            const maxCap = Math.max(...roomCourses.map(c => parseInt(c.capacite, 10)));
+            logger.info(`Maximum capacity of room ${roomId}: ${maxCap}`);
+        });
+    })
+
+    .command('freeroom', 'Check available time slots for a room')
+    .argument('<room>', 'Room identifier')
+    .action(({ args, logger }) => {
+        const roomId = args.room;
+
+        // Check if identifier is empty
+        if (!roomId || roomId.trim() === '') {
+            return logger.error("The room identifier cannot be empty.");
+        }
+
+        const fs = require('fs');
+        const path = require('path');
+        const CruParser = require('./CruParser.js');
+
+        const rootFolder = path.join(__dirname, "SujetA_data");
+
+        fs.readdir(rootFolder, { withFileTypes: true }, (err, entries) => {
+            if (err) return logger.error("Cannot read SujetA_data: " + err);
+
+            const allCourses = [];
+            let filesToRead = 0;
+
+            // Read all subfolders
+            entries.forEach(dirent => {
+                if (dirent.isDirectory()) {
+                    const filePath = path.join(rootFolder, dirent.name, "edt.cru");
+                    filesToRead++;
+
+                    fs.readFile(filePath, 'utf8', (err, data) => {
+                        filesToRead--;
+
+                        if (!err) {
+                            const parser = new CruParser();
+                            parser.parse(data);
+                            allCourses.push(...(parser.parsedCru || []));
                         }
 
-                        // Occupied time slots by day
-                        const days = ["L", "MA", "ME", "J", "V"];
-                        const hours = Array.from({ length: 12 }, (_, i) => 8 + i); // 8h → 19h
+                        // When all files are processed
+                        if (filesToRead === 0) {
 
-                        // Prepare structure: for each day, list all free hours
-                        const freeSlots = {};
-                        days.forEach(d => freeSlots[d] = [...hours]);
+                            // Filter courses for the requested room
+                            const roomCourses = allCourses.filter(c => c.salle === roomId);
 
-                        // Remove occupied hours
-                        roomCourses.forEach(c => {
-                            const day = c.jour;
-                            if (!days.includes(day)) return;
+                            if (roomCourses.length === 0) {
+                                return logger.error("This room does not exist.");
+                            }
 
-                            const [start, end] = c.horaire.split('-').map(h => parseInt(h, 10));
+                            // Occupied time slots by day
+                            const days = ["L", "MA", "ME", "J", "V"];
+                            const hours = Array.from({ length: 12 }, (_, i) => 8 + i); // 8h → 19h
 
-                            for (let h = start; h < end; h++) {
-                                const index = freeSlots[day].indexOf(h);
-                                if (index !== -1) freeSlots[day].splice(index, 1);
+                            // Prepare structure: for each day, list all free hours
+                            const freeSlots = {};
+                            days.forEach(d => freeSlots[d] = [...hours]);
+
+                            // Remove occupied hours
+                            roomCourses.forEach(c => {
+                                const day = c.jour;
+                                if (!days.includes(day)) return;
+
+                                const [start, end] = c.horaire.split('-').map(h => parseInt(h, 10));
+
+                                for (let h = start; h < end; h++) {
+                                    const index = freeSlots[day].indexOf(h);
+                                    if (index !== -1) freeSlots[day].splice(index, 1);
+                                }
+                            });
+
+                            // Final output
+                            logger.info(`Available time slots for room ${roomId}:`);
+                            logger.info(JSON.stringify(freeSlots, null, 2));
+                        }
+                    });
+                }
+            });
+        });
+    })
+    .command('ical', 'Generate an iCalendar file for specified courses')
+    .argument('<start>', 'Start date (YYYY-MM-DD)')
+    .argument('<end>', 'End date (YYYY-MM-DD)')
+    .argument('<courses...>', 'Course codes (e.g., SY02 MT09)')
+    .option('-o, --output <filename>', 'Output filename', { validator: cli.STRING, default: 'calendar.ics' })
+    .action(({ args, options, logger }) => {
+        const startDate = new Date(args.start);
+        const endDate = new Date(args.end);
+        const courses = args.courses;
+        const outputFile = options.output;
+
+        // Verifie le format de dates
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            return logger.error("Le format de date n'est pas valide. Utilisez ce format : YYYY-MM-DD");
+        }
+
+        if (startDate > endDate) {
+            return logger.error("La date de début doit être avant la date de fin");
+        }
+
+        const rootFolder = 'SujetA_data';
+        let allCourses = [];
+
+        // Lis tous les sous-dossiers
+        fs.readdir(rootFolder, { withFileTypes: true }, (err, files) => {
+            if (err) return logger.error(err);
+
+            let filesToRead = 0;
+
+            files.forEach(dirent => {
+                if (dirent.isDirectory()) {
+                    const filePath = path.join(rootFolder, dirent.name, 'edt.cru');
+
+                    if (fs.existsSync(filePath)) {
+                        filesToRead++;
+                        fs.readFile(filePath, 'utf8', (err, data) => {
+                            filesToRead--;
+
+                            if (!err) {
+                                const parser = new CruParser();
+                                parser.parse(data);
+                                allCourses = allCourses.concat(parser.parsedCru);
+                            }
+
+                            // Après avoir recuperé tous les cours
+                            if (filesToRead === 0) {
+                                generateICalendar(allCourses, courses, startDate, endDate, outputFile, logger);
                             }
                         });
-
-                        // Final output
-                        logger.info(`Available time slots for room ${roomId}:`);
-                        logger.info(JSON.stringify(freeSlots, null, 2));
                     }
-                });
+                }
+            });
+
+            if (filesToRead === 0) {
+                return logger.error("No .cru files found");
             }
         });
+    })
+
+function generateICalendar(allCourses, requestedCourses, startDate, endDate, outputFile, logger) {
+    // Filter courses matching requested course codes
+    const filteredCourses = allCourses.filter(c =>
+        requestedCourses.some(rc => c.cours === rc || c.section === rc)
+    );
+
+    if (filteredCourses.length === 0) {
+        return logger.error("Aucun cours correspondant : " + requestedCourses.join(', '));
+    }
+
+    const dayMap = {
+        'L': 1,   // Lundi
+        'MA': 2,  // Mardi
+        'ME': 3,  // Mercredi
+        'J': 4,   // Jeudi
+        'V': 5,   // Vendredi
+        'S': 6,   // Samedi
+        'D': 0    // Dimanche
+    };
+
+    // Genère la base du fichier Icalendar
+    let icalContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//CRU Parser//Calendar//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH'
+    ];
+
+    // Ajoute les evenements pour chaque cours
+    filteredCourses.forEach(course => {
+        if (!course.jour || !course.heureDeb || !course.heureFin) return;
+
+        const targetDay = dayMap[course.jour];
+        if (targetDay === undefined) return;
+
+        let currentDate = new Date(startDate);
+
+        while (currentDate <= endDate) {
+            if (currentDate.getDay() === targetDay) {
+                const [startHour, startMin] = course.heureDeb.split(':').map(Number);
+                const [endHour, endMin] = course.heureFin.split(':').map(Number);
+
+                const eventStart = new Date(currentDate);
+                eventStart.setHours(startHour, startMin, 0);
+
+                const eventEnd = new Date(currentDate);
+                eventEnd.setHours(endHour, endMin, 0);
+
+                // formate les dates pour le ical (YYYYMMDDTHHMMSS)
+                const formatDate = (date) => {
+                    return date.getFullYear() +
+                        String(date.getMonth() + 1).padStart(2, '0') +
+                        String(date.getDate()).padStart(2, '0') +
+                        'T' +
+                        String(date.getHours()).padStart(2, '0') +
+                        String(date.getMinutes()).padStart(2, '0') +
+                        String(date.getSeconds()).padStart(2, '0');
+                };
+
+                // creer les evenements
+                const uid = `${course.cours}-${course.index}-${formatDate(eventStart)}@cruparser`;
+                const summary = `${course.cours} - ${course.type}`;
+                const description = `Cours: ${course.cours}\\nType: ${course.type}\\nCapacité: ${course.capacite}\\nHoraire: ${course.heureDeb.replace(':', 'h')} - ${course.heureFin.replace(':', 'h')}\\nSemaine: ${course.semaine || 'N/A'}`;
+                const location = course.salle || 'Non spécifié';
+
+                icalContent.push('BEGIN:VEVENT');
+                icalContent.push(`UID:${uid}`);
+                icalContent.push(`DTSTAMP:${formatDate(new Date())}`);
+                icalContent.push(`DTSTART:${formatDate(eventStart)}`);
+                icalContent.push(`DTEND:${formatDate(eventEnd)}`);
+                icalContent.push(`SUMMARY:${summary}`);
+                icalContent.push(`DESCRIPTION:${description}`);
+                icalContent.push(`LOCATION:${location}`);
+                icalContent.push('STATUS:CONFIRMED');
+                icalContent.push('END:VEVENT');
+            }
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
     });
-})
+
+    icalContent.push('END:VCALENDAR');
+
+    // remplie le fichier
+    fs.writeFile(outputFile, icalContent.join('\r\n'), 'utf8', (err) => {
+        if (err) {
+            return logger.error("Error writing file: " + err);
+        }
+        logger.info(`iCalendar file generated successfully: ${outputFile}`.green);
+        logger.info(`Generated ${filteredCourses.length} course entries for ${requestedCourses.join(', ')}`);
+    });
+}
 
 
 cli.run(process.argv.slice(2));
