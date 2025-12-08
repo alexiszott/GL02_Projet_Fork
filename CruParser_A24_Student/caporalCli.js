@@ -634,7 +634,6 @@ cli
             const salleName = group[0].salle;
             json_tauxSalles[salleName] = rate;
         })
-        console.log(Object.entries(json_tauxSalles)[0][0]);
         if (options.e) {
             let csvExport = "Salle,Taux\n";
             Object.entries(json_tauxSalles).forEach(row => {
