@@ -137,6 +137,7 @@ CruParser.prototype.expect = function(s, input){
 		//console.log("Reckognized! "+s)
 		return true;
 	}else{
+		console.log("Expected :"+s+" but found :"+input[0]);
 		this.errMsg("symbol "+s+" doesn't match", input);
 	}
 	return false;
@@ -236,7 +237,7 @@ CruParser.prototype.heureFin = function(input){
 CruParser.prototype.semaine = function(input){
 	// expecting a token like 'F1'
 	var cur = input[0];
-	if(cur && /^F\d+/.test(cur)){
+	if(cur && /^F[A-Z]*\d*/.test(cur)){
 		this.next(input);
 		var fm = cur.match(/^F(\d+)/);
 		return fm ? fm[1] : cur;
@@ -246,9 +247,20 @@ CruParser.prototype.semaine = function(input){
 
 // <Salle> = "S=" 1*(ALNUM / "_" / "-")
 CruParser.prototype.salle = function(input){
-	this.expect("S=", input);
-	var sl = this.next(input);
-	return sl;
+	var cur = this.next(input);
+
+    // Case 1: correct separated tokens
+    if(cur === "S="){
+        return this.next(input);
+    }
+
+    // Case 2: merged token like "S=A207" or "S=,A207"
+    if(cur.startsWith("S=")){
+        return cur.replace(/^S=,?/, '');
+    }
+
+    this.errMsg("expected S= token", [cur]);
+    return null;
 }
 
 module.exports = CruParser;
