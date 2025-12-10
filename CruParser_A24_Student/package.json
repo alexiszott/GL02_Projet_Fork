@@ -1,16 +1,19 @@
-{
-  "name": "cru-parser-a24-student",
-  "version": "0.1.0",
-  "description": "CRU parser and small CLI for searching/testing .cru files",
-  "main": "caporalCli.js",
-  "scripts": {
-    "start": "node caporalCli.js"
-  },
-  "dependencies": {
-    "@caporal/core": "^3.0.2",
-    "colors": "^1.4.0"
-  },
-  "devDependencies": {
-    "jasmin": "^0.0.2"
+  {
+    "name": "cru-parser-a24-student",
+    "version": "0.1.0",
+    "description": "CRU parser and small CLI for searching/testing .cru files",
+    "main": "caporalCli.js",
+    "scripts": {
+      "start": "node caporalCli.js",
+      "test": "npx jasmine",
+      "test:f2": "npx jasmine spec/F2_capacity.spec.js",
+      "test:f3": "npx jasmine spec/F3_freeroom.spec.js"
+    },
+    "dependencies": {
+      "@caporal/core": "^3.0.2",
+      "colors": "^1.4.0"
+    },
+    "devDependencies": {
+      "jasmin": "^0.0.2"
+    }
   }
-}
