@@ -24,6 +24,12 @@ Files:
 - `cours.js`: simple CRS constructor
 - `caporalCli.js`: CLI with `test` command
 - `package.json`: minimal dependencies
+- `spec/` : folder containing Jasmine unit tests
+- `/F2_capacity.spec.js` : tests for maxcap command
+- `/F3_freeroom.spec.js` : tests for freeroom command
+- `node_modules/` : installed dependencies including:
+- `/jasmine` : testing framework for unit tests
+- `@caporal/core` and `colors` : CLI dependencies
 
 If `npm` is not installed on your machine, install Node.js (LTS) from https://nodejs.org/
 
@@ -58,6 +64,41 @@ If `npm` is not installed on your machine, install Node.js (LTS) from https://no
         ⮡ example: <code>node caporalCli ical 2024-01-15 2024-06-30 SY02 MT09 -o mon_calendrier.ics</code>
     </ul>
     </li>
+    <li> maxcapacity : This command returns the maximum capacity for a given room (Spec F2)  
+    <ul>
+        <li>Parameter:
+            <ul>
+                <li>room: Room identifier</li>
+                ⮡ example: <code>node caporalCli.js maxcapacity D102</code>
+            </ul>
+        </li>
+        <li>Errors:
+            <ul>
+                <li>Empty room identifier: <code>L’identifiant de la salle ne peut pas être vide.</code></li>
+                <li>Non-existent room: <code>La salle n’existe pas.</code></li>
+            </ul>
+        </li>
+        <li>Returns: The largest capacity among all courses scheduled in the room</li>
+    </ul>
+</li>
+
+<li> freeroom : This command lists free time slots for a given room (Spec F3)  
+    <ul>
+        <li>Parameter:
+            <ul>
+                <li>room: Room identifier</li>
+                ⮡ example: <code>node caporalCli.js freeroom D102</code>
+            </ul>
+        </li>
+        <li>Errors:
+            <ul>
+                <li>Empty room identifier: <code>L’identifiant de la salle ne peut pas être vide.</code></li>
+                <li>Non-existent room: <code>La salle n’existe pas.</code></li>
+            </ul>
+        </li>
+        <li>Returns: A list of free hours for each day (Monday–Friday) in 1-hour steps</li>
+    </ul>
+</li>
     <li> checkconflicts : This command checks for scheduling conflicts in all CRU files by detecting overlapping time slots in the same room on the same day and week.
     <ul>
         <li>no option given : displays basic conflict report with course names, room, day and time</li>
@@ -117,3 +158,88 @@ If `npm` is not installed on your machine, install Node.js (LTS) from https://no
         </li>
     </ul>
 </ul>
+
+#### Unit tests
+<li>  Max Capacity   
+    <ul>
+        <li>Test file: <code>spec/F2_capacity.spec.js</code></li>
+        <li>Command to run: <code>npm run test:f2</code></li>
+        <li>What it checks:
+            <ul>
+                <li>Calculates the maximum capacity for an existing room</li>
+                <li>Throws an error if the room identifier is empty</li>
+                <li>Throws an error if the room does not exist</li>
+            </ul>
+        </li>
+<li>Expected results/logs:
+    <ul>
+        <li>Existing room (e.g., D102):
+            <pre>
+Test: Retrieving the maximum capacity for room 'D102'
+   - Number of courses found: 4
+   - Maximum capacity found: 120
+Success: maximum capacity correctly determined for 'D102'
+            </pre>
+        </li>
+        <li>Empty room:
+            <pre>
+Test: Handling an empty room
+   - Empty room detected correctly
+Success: error correctly thrown for empty room
+            </pre>
+        </li>
+        <li>Non-existent room:
+            <pre>
+Test: Non-existent room 'ROOM_NOT_REAL'
+   - Number of courses found: 0
+   - Room detected as non-existent
+Success: error correctly thrown for non-existent room
+            </pre>
+        </li>
+    </ul>
+</li>
+    <li>Free Room Slots (Spec F3)
+        <ul>
+        <li>Test file: <code>spec/F3_freeroom.spec.js</code></li>
+        <li>Command to run: <code>npm run test:f3</code></li>
+        <li>What it checks:
+            <ul>
+                <li>Computes free time slots for an existing room (hours 8h–19h)</li>
+                <li>Throws an error if the room identifier is empty</li>
+                <li>Throws an error if the room does not exist</li>
+            </ul>
+        </li>
+<li>Expected results/logs:
+    <ul>
+        <li>Existing room (e.g., D102):
+            <pre>
+Test: Computing free time slots for room 'D102'
+   - Courses found: 4
+   - Example of free time slots:
+{
+  "L": [8, 9, 10, 13, 14, 15, 16, 17, 18, 19],
+  "MA": [8, 9, 10, 11, 12, 15, 16, 17, 18, 19],
+  "ME": [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+  "J": [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+  "V": [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+}
+Success: free time slots generated correctly for room 'D102'
+            </pre>
+        </li>
+        <li>Empty room:
+            <pre>
+Test: Empty room identifier
+   - Empty identifier detected
+Success: error correctly thrown for empty room identifier
+            </pre>
+        </li>
+        <li>Non-existent room:
+            <pre>
+Test: Non-existent room 'ROOM_NOT_REAL'
+   - Courses found: 0
+   - Room detected as non-existent
+Success: error correctly thrown for non-existent room
+            </pre>
+        </li>
+    </ul>
+</li>
