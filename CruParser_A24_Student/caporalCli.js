@@ -462,8 +462,8 @@ cli
               }
               
               // Affichage final
+              logger.info(`Available time slots for room ${roomId}:`);
               logger.info(JSON.stringify(formattedFreeSlots, null, 2));
-
             }
           });
         }
